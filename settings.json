@@ -1,6 +1,6 @@
 {
   "lastChangelogVersion": "0.84.2",
-  "theme": "catppuccin-mocha",
+  "theme": "tokyo-night",
   "defaultProvider": "openrouter",
   "defaultModel": "deepseek/deepseek-v4-pro-0813",
   "defaultThinkingLevel": "high",
