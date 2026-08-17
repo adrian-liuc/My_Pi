@@ -1,0 +1,10 @@
+# 凭证,绝不上传
+auth.json
+
+# 可再生缓存/二进制
+models-store.json
+bin/
+git/
+
+# 大体积、易变缓存
+*.log
