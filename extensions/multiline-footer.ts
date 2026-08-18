@@ -36,7 +36,7 @@ export default function (pi: ExtensionAPI) {
         }
       }
 
-      return new MultiLineFooter(session as never);
+      return new MultiLineFooter(session as never, footerData);
     });
   });
 }

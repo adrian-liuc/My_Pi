@@ -11,7 +11,7 @@
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 
@@ -29,29 +29,48 @@ function flagPath(): string {
   return join(process.env.CLAUDE_CONFIG_DIR || join(homedir(), ".claude"), ".galbot-mode");
 }
 
-function readMode(): Mode {
-  const env = String(process.env.GALBOT_SKILL_MODE || "").trim().toLowerCase();
-  if (isMode(env)) return env;
+// flag 文件一行：`<mode>` 或 `<mode> <HPU_IP>`。带 IP 是为了「切到 readonly」
+// 这一步就把要连哪台机器人定下来 —— 现场常有多台 G1，问晚了就会连错。
+function readFlag(): { mode: Mode; host?: string } {
   try {
-    const m = readFileSync(flagPath(), "utf8").trim().toLowerCase();
-    return isMode(m) ? m : DEFAULT_MODE;
+    const parts = readFileSync(flagPath(), "utf8").trim().split(/\s+/);
+    const m = (parts[0] || "").toLowerCase();
+    return { mode: isMode(m) ? m : DEFAULT_MODE, host: parts[1] };
   } catch {
-    return DEFAULT_MODE;
+    return { mode: DEFAULT_MODE };
   }
 }
 
-function writeMode(mode: Mode): void {
-  const p = flagPath();
-  mkdirSync(dirname(p), { recursive: true });
-  writeFileSync(p, mode, "utf8");
+function readMode(): Mode {
+  const env = String(process.env.GALBOT_SKILL_MODE || "").trim().toLowerCase();
+  if (isMode(env)) return env;
+  return readFlag().mode;
 }
 
-// 常驻正文取一次缓存住：before_agent_start 每轮都触发，每轮 spawn 一次
-// python 是白花的 30ms。正文只在 SKILL.md 改动后变，会话内不会变。
+function writeMode(mode: Mode, host?: string): void {
+  // 没给 host 就沿用上次的：切 offline 再切回 readonly 不该丢掉目标机器
+  const keep = host || readFlag().host;
+  const p = flagPath();
+  mkdirSync(dirname(p), { recursive: true });
+  writeFileSync(p, keep ? `${mode} ${keep}` : mode, "utf8");
+}
+
+// 常驻正文缓存：before_agent_start 每轮都触发，每轮 spawn 一次 python 是
+// 白花的 30ms。缓存键带上 SKILL.md 的 mtime —— 只按模式缓存的话，改了
+// SKILL.md 的 resident 块，这个 pi 进程就一直用旧正文，得重启才更新；
+// Claude Code 侧 hook 每次是新进程，没这问题，两边不该有这个不对称。
+// 一次 statSync 的代价远小于一次 spawn。
 const residentCache = new Map<string, string>();
 function residentText(mode: Mode): string {
   if (mode === "off") return "";
-  const hit = residentCache.get(mode);
+  let stamp = "0";
+  try {
+    stamp = String(statSync(join(REPO, "SKILL.md")).mtimeMs);
+  } catch {
+    // SKILL.md 读不到：仍然缓存，只是拿不到新正文
+  }
+  const cacheKey = `${mode}@${stamp}`;
+  const hit = residentCache.get(cacheKey);
   if (hit !== undefined) return hit;
   let text = "";
   try {
@@ -59,7 +78,7 @@ function residentText(mode: Mode): string {
   } catch {
     text = ""; // python 不在或仓库被挪走 —— 徽章和拦截仍要能用
   }
-  residentCache.set(mode, text);
+  residentCache.set(cacheKey, text);
   return text;
 }
 
@@ -82,6 +101,7 @@ function denyReason(mode: Mode, command: string): string | null {
 
 export default function (pi: ExtensionAPI) {
   let mode: Mode = readMode();
+  let busy = false;
 
   function sync(ctx?: any) {
     const ui = ctx?.ui;
@@ -92,18 +112,28 @@ export default function (pi: ExtensionAPI) {
     if (mode === "off") { ui.setStatus("galbot", ""); return; }
     // 亮的是权限高的那个：徽章醒目 = 这个会话能碰机器人。
     // 跟 caveman/ponytail「强度高才亮」相反，这里危险的是权限不是强度。
+    // readonly 一定把目标 IP 显出来：现场多台 G1 时，
+    // 「连的哪台」比「什么模式」更要紧。
+    const host = readFlag().host;
     const label = mode === "readonly"
-      ? theme.fg("accent", "🔓 READONLY")
+      ? theme.fg("accent", "🔓 READONLY" + (host ? " " + host : " (未指定)"))
       : theme.fg("muted", "🔒 OFFLINE");
-    ui.setStatus("galbot", "🤖 " + theme.fg("muted", "galbot: ") + label);
+    // 跟同一条状态栏上的 caveman / ponytail 对齐：前导圆点，跑起来实心、空闲空心
+    const dot = busy ? theme.fg("accent", "●") : theme.fg("dim", "○");
+    ui.setStatus("galbot", dot + " 🤖 " + theme.fg("muted", "galbot: ") + label);
   }
 
   pi.registerCommand("galbot", {
     description: `Switch galbot-sdk mode: ${MODES.join("|")}`,
     handler: async (args, ctx) => {
-      const arg = (args || "").trim().toLowerCase();
+      const parts = (args || "").trim().split(/\s+/).filter(Boolean);
+      const arg = (parts[0] || "").toLowerCase();
+      // 第二个参数是目标 HPU 地址：/galbot readonly 192.168.39.132
+      const host = /^[\w.-]+$/.test(parts[1] || "") ? parts[1] : undefined;
       if (!arg || arg === "status") {
-        ctx.ui.notify(`galbot-sdk 模式: ${mode}`, "info");
+        const f = readFlag();
+        ctx.ui.notify(
+          `galbot-sdk 模式: ${f.mode}${f.host ? "，目标 " + f.host : ""}`, "info");
         return;
       }
       if (!isMode(arg)) {
@@ -111,11 +141,12 @@ export default function (pi: ExtensionAPI) {
         return;
       }
       mode = arg;
-      writeMode(mode);
+      writeMode(mode, host);
       sync(ctx);
+      const target = readFlag().host;
       ctx.ui.notify(
         mode === "readonly"
-          ? "galbot-sdk: readonly —— 机器人只读，写操作仍然拦截"
+          ? `galbot-sdk: readonly —— 目标 ${target || "未指定，先问用户要 HPU IP"}，机器人只读`
           : mode === "offline"
             ? "galbot-sdk: offline —— 不连机器人，ssh/scp 会被拦"
             : "galbot-sdk: off —— 拦截已关",
@@ -148,4 +179,7 @@ export default function (pi: ExtensionAPI) {
     mode = readMode();
     sync(ctx);
   });
+
+  pi.on("agent_start", async (_event, ctx) => { busy = true; sync(ctx); });
+  pi.on("agent_end", async (_event, ctx) => { busy = false; sync(ctx); });
 }
