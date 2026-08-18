@@ -2,7 +2,7 @@
   "lastChangelogVersion": "0.84.2",
   "theme": "tokyo-night",
   "defaultProvider": "openrouter",
-  "defaultModel": "deepseek/deepseek-v4-pro-0813",
+  "defaultModel": "deepseek/deepseek-v4-flash-0731",
   "defaultThinkingLevel": "high",
   "packages": [
     "git:github.com/DietrichGebert/ponytail",
