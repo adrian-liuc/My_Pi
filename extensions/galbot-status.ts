@@ -29,16 +29,31 @@ function flagPath(): string {
   return join(process.env.CLAUDE_CONFIG_DIR || join(homedir(), ".claude"), ".galbot-mode");
 }
 
-// flag 文件一行：`<mode>` 或 `<mode> <HPU_IP>`。带 IP 是为了「切到 readonly」
+// flag 文件一行：`<mode> [HPU_IP] [XCU_IP]`。带地址是为了「切到 readonly」
 // 这一步就把要连哪台机器人定下来 —— 现场常有多台 G1，问晚了就会连错。
-function readFlag(): { mode: Mode; host?: string } {
+// XCU 单独记：它只在内网、必须从 HPU 跳，地址每台机器不同，
+// 而工作模式、急停、关节故障的日志只在那一端。
+// 地址尾部的 `+` 表示实测连上过（由 galbot_hook.py verify 打上）。
+// 没有 `+` 就只是"有人输入过这个字符串"，敲错一位也看不出来。
+function readFlag(): { mode: Mode; hpu?: string; xcu?: string;
+                       hpuOk: boolean; xcuOk: boolean } {
   try {
     const parts = readFileSync(flagPath(), "utf8").trim().split(/\s+/);
     const m = (parts[0] || "").toLowerCase();
-    return { mode: isMode(m) ? m : DEFAULT_MODE, host: parts[1] };
+    const cut = (v?: string) => v?.replace(/\+$/, "");
+    return {
+      mode: isMode(m) ? m : DEFAULT_MODE,
+      hpu: cut(parts[1]), xcu: cut(parts[2]),
+      hpuOk: !!parts[1]?.endsWith("+"), xcuOk: !!parts[2]?.endsWith("+"),
+    };
   } catch {
-    return { mode: DEFAULT_MODE };
+    return { mode: DEFAULT_MODE, hpuOk: false, xcuOk: false };
   }
+}
+
+/** 未验证的地址不显示出来：把"输入过"显示成"连上了"是在撒谎。 */
+function shown(addr?: string, ok?: boolean): string {
+  return !addr ? "未指定" : ok ? addr : "未连";
 }
 
 function readMode(): Mode {
@@ -47,12 +62,24 @@ function readMode(): Mode {
   return readFlag().mode;
 }
 
-function writeMode(mode: Mode, host?: string): void {
-  // 没给 host 就沿用上次的：切 offline 再切回 readonly 不该丢掉目标机器
-  const keep = host || readFlag().host;
+function writeMode(mode: Mode, hpu?: string, xcu?: string): void {
+  // 没给就沿用上次的。但换了 HPU 就必须重给 XCU —— 两台机器的 XCU 地址无关，
+  // 留着上一台的会让 agent 连到别人的机器上去。
+  // 换地址就清掉已验证标记 —— 新地址还没连过，沿用旧标记等于替它撒谎
+  const prev = readFlag();
+  let keepHpu = hpu, keepXcu = xcu;
+  let okH = false, okX = false;
+  if (!hpu) {
+    keepHpu = prev.hpu; okH = prev.hpuOk;
+    if (!xcu) { keepXcu = prev.xcu; okX = prev.xcuOk; }
+  } else if (!xcu && hpu === prev.hpu) {
+    okH = prev.hpuOk; keepXcu = prev.xcu; okX = prev.xcuOk;
+  }
+  const tag = (a?: string, ok?: boolean) => (a ? a + (ok ? "+" : "") : undefined);
   const p = flagPath();
   mkdirSync(dirname(p), { recursive: true });
-  writeFileSync(p, keep ? `${mode} ${keep}` : mode, "utf8");
+  writeFileSync(p,
+    [mode, tag(keepHpu, okH), tag(keepXcu, okX)].filter(Boolean).join(" "), "utf8");
 }
 
 // 常驻正文缓存：before_agent_start 每轮都触发，每轮 spawn 一次 python 是
@@ -114,9 +141,12 @@ export default function (pi: ExtensionAPI) {
     // 跟 caveman/ponytail「强度高才亮」相反，这里危险的是权限不是强度。
     // readonly 一定把目标 IP 显出来：现场多台 G1 时，
     // 「连的哪台」比「什么模式」更要紧。
-    const host = readFlag().host;
+    // 两端都显：现场多台 G1 时「连的哪台」比「什么模式」更要紧，而 XCU 缺不缺
+    // 直接决定能不能查工作模式与急停——显式写成「未指定」比不显示更有用。
+    const f = readFlag();
     const label = mode === "readonly"
-      ? theme.fg("accent", "🔓 READONLY" + (host ? " " + host : " (未指定)"))
+      ? theme.fg("accent",
+          `🔓 RO (HPU:${shown(f.hpu, f.hpuOk)})(XCU:${shown(f.xcu, f.xcuOk)})`)
       : theme.fg("muted", "🔒 OFFLINE");
     // 跟同一条状态栏上的 caveman / ponytail 对齐：前导圆点，跑起来实心、空闲空心
     const dot = busy ? theme.fg("accent", "●") : theme.fg("dim", "○");
@@ -128,12 +158,17 @@ export default function (pi: ExtensionAPI) {
     handler: async (args, ctx) => {
       const parts = (args || "").trim().split(/\s+/).filter(Boolean);
       const arg = (parts[0] || "").toLowerCase();
-      // 第二个参数是目标 HPU 地址：/galbot readonly 192.168.39.132
-      const host = /^[\w.-]+$/.test(parts[1] || "") ? parts[1] : undefined;
+      // 后两个参数是地址：/galbot readonly <HPU_IP> [XCU_IP]
+      const ok = (v?: string) => (/^[\w.-]+$/.test(v || "") ? v : undefined);
+      const hpu = ok(parts[1]);
+      const xcu = ok(parts[2]);
       if (!arg || arg === "status") {
         const f = readFlag();
         ctx.ui.notify(
-          `galbot-sdk 模式: ${f.mode}${f.host ? "，目标 " + f.host : ""}`, "info");
+          `galbot-sdk 模式: ${f.mode}` +
+            (f.hpu ? `，HPU ${f.hpu}${f.hpuOk ? "（已连上）" : "（未验证）"}` : "") +
+            (f.xcu ? `，XCU ${f.xcu}${f.xcuOk ? "（已连上）" : "（未验证）"}` : ""),
+          "info");
         return;
       }
       if (!isMode(arg)) {
@@ -141,12 +176,16 @@ export default function (pi: ExtensionAPI) {
         return;
       }
       mode = arg;
-      writeMode(mode, host);
+      writeMode(mode, hpu, xcu);
       sync(ctx);
-      const target = readFlag().host;
+      const f = readFlag();
+      const target = f.hpu
+        ? `${f.hpu}${f.xcu ? " / XCU " + f.xcu : "（XCU 未指定，跑不了 precheck）"}`
+        + "，先跑 galbot_hook.py verify 确认连得上"
+        : "未指定，先问用户要 HPU IP";
       ctx.ui.notify(
         mode === "readonly"
-          ? `galbot-sdk: readonly —— 目标 ${target || "未指定，先问用户要 HPU IP"}，机器人只读`
+          ? `galbot-sdk: readonly —— 目标 ${target}，机器人只读`
           : mode === "offline"
             ? "galbot-sdk: offline —— 不连机器人，ssh/scp 会被拦"
             : "galbot-sdk: off —— 拦截已关",
