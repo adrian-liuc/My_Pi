@@ -12,9 +12,9 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 
-const MODES = ["offline", "readonly", "off"] as const;
+const MODES = ["local", "read", "off"] as const;
 type Mode = (typeof MODES)[number];
-const DEFAULT_MODE: Mode = "offline";
+const DEFAULT_MODE: Mode = "local";
 
 // 复制到 pi 的扩展目录后就离开了仓库，所以仓库路径要能被覆盖
 const REPO = process.env.GALBOT_SKILL_REPO || join(homedir(), "galbot-sdk-skill");
@@ -30,7 +30,8 @@ function flagPath(): string {
 function readFlag(): { mode: Mode; hpu?: string; xcu?: string } {
   try {
     const parts = readFileSync(flagPath(), "utf8").trim().split(/\s+/);
-    const m = (parts[0] || "").toLowerCase();
+    let m = (parts[0] || "").toLowerCase();
+    m = { offline: "local", readonly: "read" }[m] ?? m;   // 1.x 的旧名
     const cut = (v?: string) => v?.replace(/\+$/, "");   // 1.x 的「已连上」标记
     return { mode: isMode(m) ? m : DEFAULT_MODE, hpu: cut(parts[1]), xcu: cut(parts[2]) };
   } catch {
@@ -95,14 +96,15 @@ export default function (pi: ExtensionAPI) {
     let theme: any;
     try { theme = ui.theme; } catch { return; }
     if (!theme?.fg) return;
-    if (mode === "off") { ui.setStatus("galbot", ""); return; }
+    // off 也要显：静默关掉最危险 —— 看不出是护栏关了还是 skill 根本没装
     // 亮的是权限高的那个：徽章醒目 = 这个会话能碰机器人。
     // 两端地址都显，占位符用 ASCII（中文宽度算不准会挤歪后面的徽章）：
     // 现场多台 G1 时「连的哪台」比「什么模式」更要紧，XCU 缺不缺决定能不能查急停。
     const f = readFlag();
-    const label = mode === "readonly"
-      ? theme.fg("accent", `🔓 RO (HPU:${f.hpu || "NONE"})(XCU:${f.xcu || "NONE"})`)
-      : theme.fg("muted", "🔒 OFFLINE");
+    const label = mode === "read"
+      ? theme.fg("accent", `🔓 READ (HPU:${f.hpu || "NONE"})(XCU:${f.xcu || "NONE"})`)
+      : mode === "local" ? theme.fg("muted", "🔒 LOCAL")
+        : theme.fg("dim", "⚠ OFF");
     const dot = busy ? theme.fg("accent", "●") : theme.fg("dim", "○");
     ui.setStatus("galbot", dot + " 🤖 " + theme.fg("muted", "galbot: ") + label);
   }
@@ -124,15 +126,15 @@ export default function (pi: ExtensionAPI) {
         return;
       }
       mode = arg;
-      writeMode(mode, ok(parts[1]), ok(parts[2]));   // /galbot readonly <HPU> [XCU]
+      writeMode(mode, ok(parts[1]), ok(parts[2]));   // /galbot read <HPU> [XCU]
       sync(ctx);
       const f = readFlag();
       const target = f.hpu
         ? `${f.hpu}${f.xcu ? " / XCU " + f.xcu : "（XCU 未指定，跑不了 precheck）"}`
         : "未指定，先问用户要 HPU IP";
       ctx.ui.notify(
-        mode === "readonly" ? `galbot-sdk: readonly —— 目标 ${target}，机器人只读`
-          : mode === "offline" ? "galbot-sdk: offline —— 不连机器人，ssh/scp 会被拦"
+        mode === "read" ? `galbot-sdk: read —— 目标 ${target}，机器人只读`
+          : mode === "local" ? "galbot-sdk: local —— 不连机器人，ssh/scp 会被拦"
             : "galbot-sdk: off —— 拦截已关", "info");
     },
   });
