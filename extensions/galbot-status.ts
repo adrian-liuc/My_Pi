@@ -51,9 +51,10 @@ function readFlag(): { mode: Mode; hpu?: string; xcu?: string;
   }
 }
 
-/** 未验证的地址不显示出来：把"输入过"显示成"连上了"是在撒谎。 */
+/** 未验证的地址不显示出来：把"输入过"显示成"连上了"是在撒谎。
+ *  占位符用 ASCII——终端里中文宽度算不准，会把后面的徽章挤歪。 */
 function shown(addr?: string, ok?: boolean): string {
-  return !addr ? "未指定" : ok ? addr : "未连";
+  return !addr ? "NULL" : ok ? addr : "DOWN";
 }
 
 function readMode(): Mode {
