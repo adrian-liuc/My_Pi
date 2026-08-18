@@ -31,7 +31,8 @@ function readFlag(): { mode: Mode; hpu?: string; xcu?: string } {
   try {
     const parts = readFileSync(flagPath(), "utf8").trim().split(/\s+/);
     const m = (parts[0] || "").toLowerCase();
-    return { mode: isMode(m) ? m : DEFAULT_MODE, hpu: parts[1], xcu: parts[2] };
+    const cut = (v?: string) => v?.replace(/\+$/, "");   // 1.x 的「已连上」标记
+    return { mode: isMode(m) ? m : DEFAULT_MODE, hpu: cut(parts[1]), xcu: cut(parts[2]) };
   } catch {
     return { mode: DEFAULT_MODE };
   }
