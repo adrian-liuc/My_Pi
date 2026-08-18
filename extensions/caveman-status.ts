@@ -29,15 +29,12 @@ export default function (pi: ExtensionAPI) {
       ui.setStatus("caveman", "");
       return;
     }
-    const list = MODES.map((m) => (m === mode ? theme.fg("accent", m) : theme.fg("dim", m))).join("/");
     ui.setStatus(
       "caveman",
       theme.fg("accent", "●") +
         " 🗿 " +
         theme.fg("muted", "caveman: ") +
-        theme.fg("text", `${ICONS[mode]} ${mode.toUpperCase()}`) +
-        "  " +
-        list,
+        theme.fg("text", `${ICONS[mode]} ${mode.toUpperCase()}`),
     );
   }
 
