@@ -69,9 +69,8 @@ function residentText(mode: Mode): string {
   }
 }
 
-// 拦不拦交给 Python 判，退出码 2 = 拦
+// 拦不拦交给 Python 判，退出码 2 = 拦。off 也要走这条 —— 它只关常驻提示，不关拦截。
 function denyReason(mode: Mode, command: string): string | null {
-  if (mode === "off") return null;
   try {
     execFileSync("python3", [HOOK, "guard"], {
       input: JSON.stringify({ tool_name: "Bash", tool_input: { command } }),
