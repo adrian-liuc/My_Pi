@@ -106,7 +106,7 @@ export default function (pi: ExtensionAPI) {
       : mode === "local" ? theme.fg("muted", "💻 LOCAL")
         : theme.fg("dim", "💤 OFF");
     const dot = busy ? theme.fg("accent", "●") : theme.fg("dim", "○");
-    ui.setStatus("galbot", dot + " 🤖 " + theme.fg("muted", "galbot: ") + label);
+    ui.setStatus("galbot", dot + " ✨ " + theme.fg("muted", "galbot: ") + label);
   }
 
   pi.registerCommand("galbot", {
