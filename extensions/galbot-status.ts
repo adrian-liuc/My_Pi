@@ -1,7 +1,7 @@
 // galbot-sdk 的 pi 扩展：状态栏 + 常驻文字注入 + 只读执法 + /galbot 切模式。
 //
 // 与 Claude Code 侧共用 flag 文件（~/.claude/.galbot-mode）和同一份判读器
-// （adapters/claude-code/hook.py）。这里不重抄规则 —— 两边一致靠调同一个 Python。
+// （adapters/claude-code/hook.py）。这里不重抄规则，两边一致靠调同一个 Python。
 //
 // 装法见 install.sh：复制到 ~/.pi/agent/extensions/，不是软链（那个目录
 // 会同步到 GitHub，软链在别的机器上是断的）。
@@ -31,8 +31,8 @@ function readFlag(): { mode: Mode; hpu?: string; xcu?: string } {
   try {
     const parts = readFileSync(flagPath(), "utf8").trim().split(/\s+/);
     let m = (parts[0] || "").toLowerCase();
-    m = { offline: "local", readonly: "read" }[m] ?? m;   // 1.x 的旧名
-    const cut = (v?: string) => v?.replace(/\+$/, "");   // 1.x 的「已连上」标记
+    m = { offline: "local", readonly: "read" }[m] ?? m;   // 旧写法
+    const cut = (v?: string) => v?.replace(/\+$/, "");   // 旧 flag 的连通性标记
     return { mode: isMode(m) ? m : DEFAULT_MODE, hpu: cut(parts[1]), xcu: cut(parts[2]) };
   } catch {
     return { mode: DEFAULT_MODE };
@@ -44,7 +44,7 @@ function readMode(): Mode {
   return isMode(env) ? env : readFlag().mode;
 }
 
-// 换了 HPU 就必须重给 XCU —— 两台机器的 XCU 地址无关，留着会连到别人的机器上
+// 换了 HPU 就必须重给 XCU，两台机器的 XCU 地址无关，留着会连到另一台机器人
 function writeMode(mode: Mode, hpu?: string, xcu?: string): void {
   const prev = readFlag();
   let keepHpu = hpu, keepXcu = xcu;
@@ -65,7 +65,7 @@ function residentText(mode: Mode): string {
     return execFileSync("python3", [HOOK, "resident", mode],
       { encoding: "utf8", timeout: 5000 });
   } catch {
-    return ""; // python 不在或仓库被挪走 —— 徽章和拦截仍要能用
+    return ""; // python 不在或仓库被挪走，徽章和拦截仍要能用
   }
 }
 
@@ -82,7 +82,7 @@ function denyReason(mode: Mode, command: string): string | null {
     return null;
   } catch (e: any) {
     if (e?.status === 2) return String(e.stderr || "").trim() || "galbot-sdk：当前模式不允许这条命令。";
-    return null; // 判读器自己坏了：pi 侧放行，Claude Code 侧仍有一道
+    return null; // 判读器本身出错：pi 侧放行，Claude Code 侧仍有一道
   }
 }
 
@@ -96,7 +96,7 @@ export default function (pi: ExtensionAPI) {
     let theme: any;
     try { theme = ui.theme; } catch { return; }
     if (!theme?.fg) return;
-    // off 也要显：静默关掉最危险 —— 看不出是护栏关了还是 skill 根本没装
+    // off 也要显：静默关掉最危险，看不出是护栏关了还是 skill 根本没装
     // 亮的是权限高的那个：徽章醒目 = 这个会话能碰机器人。
     // 两端地址都显，占位符用 ASCII（中文宽度算不准会挤歪后面的徽章）：
     // 现场多台 G1 时「连的哪台」比「什么模式」更要紧，XCU 缺不缺决定能不能查急停。
@@ -133,9 +133,9 @@ export default function (pi: ExtensionAPI) {
         ? `${f.hpu}${f.xcu ? " / XCU " + f.xcu : "（XCU 未指定，跑不了 precheck）"}`
         : "未指定，先问用户要 HPU IP";
       ctx.ui.notify(
-        mode === "read" ? `galbot-sdk: read —— 目标 ${target}，机器人只读`
-          : mode === "local" ? "galbot-sdk: local —— 不连机器人，ssh/scp 会被拦"
-            : "galbot-sdk: off —— 拦截已关", "info");
+        mode === "read" ? `galbot-sdk: read，目标 ${target}，机器人只读`
+          : mode === "local" ? "galbot-sdk: local，不连机器人，ssh/scp 会被拦"
+            : "galbot-sdk: off，拦截已关", "info");
     },
   });
 
