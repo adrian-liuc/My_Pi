@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 
-const MODES = ["local", "read", "off"] as const;
+const MODES = ["local", "read", "verify", "off"] as const;
 type Mode = (typeof MODES)[number];
 const DEFAULT_MODE: Mode = "local";
 
@@ -100,10 +100,12 @@ export default function (pi: ExtensionAPI) {
     // 两端地址都显，占位符用 ASCII（中文宽度算不准会挤歪后面的徽章）：
     // 现场多台 G1 时「连的哪台」比「什么模式」更要紧，XCU 缺不缺决定能不能查急停。
     const f = readFlag();
-    const label = mode === "read"
-      ? theme.fg("accent", `🔗 READ (HPU:${f.hpu || "NONE"})(XCU:${f.xcu || "NONE"})`)
-      : mode === "local" ? theme.fg("muted", "💻 LOCAL")
-        : theme.fg("dim", "💤 OFF");
+    const hosts = `(HPU:${f.hpu || "NONE"})(XCU:${f.xcu || "NONE"})`;
+    const label = mode === "verify"
+      ? theme.fg("error", `🧮 VERIFY ${hosts}`)
+      : mode === "read" ? theme.fg("accent", `🔗 READ ${hosts}`)
+        : mode === "local" ? theme.fg("muted", "💻 LOCAL")
+          : theme.fg("dim", "💤 OFF");
     const dot = busy ? theme.fg("accent", "●") : theme.fg("dim", "○");
     ui.setStatus("galbot", dot + " ✨ " + theme.fg("muted", "galbot: ") + label);
   }
