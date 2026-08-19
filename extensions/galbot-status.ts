@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
 
-const MODES = ["local", "read", "verify", "off"] as const;
+const MODES = ["local", "read", "off"] as const;
 type Mode = (typeof MODES)[number];
 const DEFAULT_MODE: Mode = "local";
 
@@ -101,11 +101,10 @@ export default function (pi: ExtensionAPI) {
     // 现场多台 G1 时「连的哪台」比「什么模式」更要紧，XCU 缺不缺决定能不能查急停。
     const f = readFlag();
     const hosts = `(HPU:${f.hpu || "NONE"})(XCU:${f.xcu || "NONE"})`;
-    const label = mode === "verify"
-      ? theme.fg("error", `🧮 VERIFY ${hosts}`)
-      : mode === "read" ? theme.fg("accent", `🔗 READ ${hosts}`)
-        : mode === "local" ? theme.fg("muted", "💻 LOCAL")
-          : theme.fg("dim", "💤 OFF");
+    const label = mode === "read"
+      ? theme.fg("accent", `🔗 READ ${hosts}`)
+      : mode === "local" ? theme.fg("muted", "💻 LOCAL")
+        : theme.fg("dim", "💤 OFF");
     const dot = busy ? theme.fg("accent", "●") : theme.fg("dim", "○");
     ui.setStatus("galbot", dot + " ✨ " + theme.fg("muted", "galbot: ") + label);
   }
