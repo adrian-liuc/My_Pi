@@ -102,9 +102,9 @@ export default function (pi: ExtensionAPI) {
     // 现场多台 G1 时「连的哪台」比「什么模式」更要紧，XCU 缺不缺决定能不能查急停。
     const f = readFlag();
     const label = mode === "read"
-      ? theme.fg("accent", `🔓 READ (HPU:${f.hpu || "NONE"})(XCU:${f.xcu || "NONE"})`)
-      : mode === "local" ? theme.fg("muted", "🔒 LOCAL")
-        : theme.fg("dim", "⚠ OFF");
+      ? theme.fg("accent", `🔗 READ (HPU:${f.hpu || "NONE"})(XCU:${f.xcu || "NONE"})`)
+      : mode === "local" ? theme.fg("muted", "💻 LOCAL")
+        : theme.fg("dim", "💤 OFF");
     const dot = busy ? theme.fg("accent", "●") : theme.fg("dim", "○");
     ui.setStatus("galbot", dot + " 🤖 " + theme.fg("muted", "galbot: ") + label);
   }
