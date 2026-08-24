@@ -2,7 +2,7 @@
   "lastChangelogVersion": "0.84.2",
   "theme": "dark",
   "defaultProvider": "openrouter",
-  "defaultModel": "minimax/minimax-m3",
+  "defaultModel": "deepseek/deepseek-v4-pro-0813",
   "defaultThinkingLevel": "high",
   "packages": [
     "git:github.com/DietrichGebert/ponytail",
