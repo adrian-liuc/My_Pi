@@ -1,0 +1,35 @@
+{
+  "providers": {
+    "galbot": {
+      "baseUrl": "https://llm-gateway.galbot.com/v1",
+      "api": "openai-completions",
+      "apiKey": "sk-rHFQK9bmRyGRTxeWw7RcGA",
+      "models": [
+        {
+          "id": "claude-opus-4-8",
+          "name": "Opus 4.8",
+          "contextWindow": 1000000,
+          "maxTokens": 128000
+        },
+        {
+          "id": "claude-opus-5",
+          "name": "Opus 5",
+          "contextWindow": 1000000,
+          "maxTokens": 128000
+        },
+        {
+          "id": "gpt-5.6-sol",
+          "name": "GPT 5.6 Sol",
+          "contextWindow": 1050000,
+          "maxTokens": 128000
+        },
+        {
+          "id": "gpt-5.6-terra",
+          "name": "GPT 5.6 Terra",
+          "contextWindow": 1050000,
+          "maxTokens": 128000
+        }
+      ]
+    }
+  }
+}
