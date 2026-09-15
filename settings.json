@@ -2,7 +2,7 @@
   "lastChangelogVersion": "0.84.2",
   "theme": "dark",
   "defaultProvider": "openrouter",
-  "defaultModel": "deepseek/deepseek-v4-pro-0813",
+  "defaultModel": "moonshotai/kimi-k3",
   "defaultThinkingLevel": "high",
   "packages": [
     "git:github.com/DietrichGebert/ponytail",

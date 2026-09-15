@@ -1,0 +1,5 @@
+{"type":"session","version":3,"id":"01a0a507-4371-76ff-83de-17aafd4648d3","timestamp":"2026-09-15T12:25:11.793Z","cwd":"/home/galbot/桌面"}
+{"type":"model_change","id":"95218bae","parentId":null,"timestamp":"2026-09-15T12:25:11.886Z","provider":"galbot","modelId":"claude-opus-4-8"}
+{"type":"thinking_level_change","id":"51860847","parentId":"95218bae","timestamp":"2026-09-15T12:25:11.886Z","thinkingLevel":"off"}
+{"type":"message","id":"74e1dc0a","parentId":"51860847","timestamp":"2026-09-15T12:27:17.157Z","message":{"role":"user","content":[{"type":"text","text":"hello"}],"timestamp":1789475237111}}
+{"type":"message","id":"9b824f04","parentId":"74e1dc0a","timestamp":"2026-09-15T12:27:20.837Z","message":{"role":"assistant","content":[{"type":"text","text":"Hi! 有什么可以帮你的？"}],"api":"openai-completions","provider":"galbot","model":"claude-opus-4-8","usage":{"input":9991,"output":17,"cacheRead":0,"cacheWrite":0,"reasoning":0,"totalTokens":10008,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"stop","timestamp":1789475237197,"responseId":"chatcmpl-d18a123f-2ee8-4453-9965-17ac51683f14","rawStopReason":"stop"}}

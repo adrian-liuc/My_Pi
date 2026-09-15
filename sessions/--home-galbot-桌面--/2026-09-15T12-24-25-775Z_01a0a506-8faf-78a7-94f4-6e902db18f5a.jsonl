@@ -1,0 +1,5 @@
+{"type":"session","version":3,"id":"01a0a506-8faf-78a7-94f4-6e902db18f5a","timestamp":"2026-09-15T12:24:25.775Z","cwd":"/home/galbot/桌面"}
+{"type":"model_change","id":"b9f84b51","parentId":null,"timestamp":"2026-09-15T12:24:25.860Z","provider":"galbot","modelId":"claude-opus-4-8"}
+{"type":"thinking_level_change","id":"4fc2763a","parentId":"b9f84b51","timestamp":"2026-09-15T12:24:25.860Z","thinkingLevel":"off"}
+{"type":"message","id":"07b6d2da","parentId":"4fc2763a","timestamp":"2026-09-15T12:24:25.892Z","message":{"role":"user","content":[{"type":"text","text":"reply with exactly: GATEWAY OK"}],"timestamp":1789475065867}}
+{"type":"message","id":"83fecb9b","parentId":"07b6d2da","timestamp":"2026-09-15T12:24:29.496Z","message":{"role":"assistant","content":[{"type":"text","text":"GATEWAY OK"}],"api":"openai-completions","provider":"galbot","model":"claude-opus-4-8","usage":{"input":10004,"output":10,"cacheRead":0,"cacheWrite":0,"reasoning":0,"totalTokens":10014,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"stop","timestamp":1789475065928,"responseId":"chatcmpl-b1be802c-178e-4e76-a5d6-91bd85385144","rawStopReason":"stop"}}
