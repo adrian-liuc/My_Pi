@@ -1,8 +1,8 @@
 {
-  "lastChangelogVersion": "0.84.2",
+  "lastChangelogVersion": "0.85.1",
   "theme": "dark",
-  "defaultProvider": "openrouter",
-  "defaultModel": "moonshotai/kimi-k3",
+  "defaultProvider": "galbot",
+  "defaultModel": "kimi-k2.7-code-highspeed",
   "defaultThinkingLevel": "high",
   "packages": [
     "git:github.com/DietrichGebert/ponytail",
