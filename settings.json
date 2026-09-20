@@ -4,8 +4,5 @@
   "defaultProvider": "galbot",
   "defaultModel": "kimi-k2.7-code-highspeed",
   "defaultThinkingLevel": "high",
-  "packages": [
-    "git:github.com/DietrichGebert/ponytail",
-    "git:github.com/JuliusBrussee/caveman"
-  ]
+  "packages": []
 }

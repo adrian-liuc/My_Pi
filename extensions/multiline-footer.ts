@@ -1,4 +1,4 @@
-// 把状态栏里多个扩展徽章（caveman / galbot / ponytail）从一行拆成每行一个。
+// 把状态栏里多个扩展徽章从一行拆成每行一个。
 // 复用 pi 内置 FooterComponent 渲染前两行（pwd + token/model 统计），
 // 只把第三行的合并状态行替换成每状态一行。
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -19,7 +19,7 @@ export default function (pi: ExtensionAPI) {
           return ctx.sessionManager;
         },
         getContextUsage: () => ctx.getContextUsage(),
-        // ponytail: Kimi 订阅标记不读，stub false；用 Kimi 订阅再补。
+        // Kimi 订阅标记不读，stub false；用 Kimi 订阅再补。
         modelRuntime: { isUsingSubscription: () => false },
       };
 

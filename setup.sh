@@ -6,7 +6,7 @@ DEST="$HOME/.pi/agent"
 # 1. pi 本体(没有就装)
 command -v pi >/dev/null 2>&1 || npm install -g @earendil-works/pi-coding-agent
 
-# 2. 装回 packages(ponytail/caveman 等)
+# 2. 装回 packages
 pi update --extensions
 
 # 3. 唯一手动项:API key
