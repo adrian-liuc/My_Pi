@@ -2,7 +2,7 @@
   "lastChangelogVersion": "0.86.0",
   "theme": "dark",
   "defaultProvider": "galbot",
-  "defaultModel": "deepseek-v4-flash-0425",
+  "defaultModel": "deepseek-v4-flash",
   "defaultThinkingLevel": "high",
   "packages": []
 }
