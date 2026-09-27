@@ -14,3 +14,10 @@
 {"type":"model_change","id":"e4717df3","parentId":"f15e7cfb","timestamp":"2026-09-27T02:29:37.859Z","provider":"galbot","modelId":"deepseek-v4-flash-0425"}
 {"type":"message","id":"4bbd14bb","parentId":"e4717df3","timestamp":"2026-09-27T02:29:40.445Z","message":{"role":"user","content":[{"type":"text","text":"你好"}],"timestamp":1790476180443}}
 {"type":"message","id":"f9d489da","parentId":"4bbd14bb","timestamp":"2026-09-27T02:29:51.251Z","message":{"role":"assistant","content":[{"type":"thinking","thinking":"用户说\"你好\"，我用中文回复问候即可。不需要调用任何工具。","thinkingSignature":"reasoning_content"},{"type":"text","text":"你好，有什么我可以帮你的？"}],"api":"openai-completions","provider":"galbot","model":"deepseek-v4-flash-0425","usage":{"input":2024,"output":24,"cacheRead":0,"cacheWrite":0,"reasoning":16,"totalTokens":2048,"cost":{"input":0,"output":0,"cacheRead":0,"cacheWrite":0,"total":0}},"stopReason":"stop","timestamp":1790476180446,"responseId":"chatcmpl-70ac46aa-d5c5-9702-bba2-cc4669125dc0","rawStopReason":"stop"}}
+{"type":"thinking_level_change","id":"abcb072c","parentId":"f9d489da","timestamp":"2026-09-27T02:30:31.594Z","thinkingLevel":"minimal"}
+{"type":"thinking_level_change","id":"1771f56b","parentId":"abcb072c","timestamp":"2026-09-27T02:30:33.520Z","thinkingLevel":"low"}
+{"type":"thinking_level_change","id":"446aaeb9","parentId":"1771f56b","timestamp":"2026-09-27T02:30:39.539Z","thinkingLevel":"medium"}
+{"type":"thinking_level_change","id":"ab6dc482","parentId":"446aaeb9","timestamp":"2026-09-27T02:30:40.048Z","thinkingLevel":"high"}
+{"type":"thinking_level_change","id":"ccd298a8","parentId":"ab6dc482","timestamp":"2026-09-27T02:30:40.308Z","thinkingLevel":"minimal"}
+{"type":"thinking_level_change","id":"f5a7458d","parentId":"ccd298a8","timestamp":"2026-09-27T02:30:40.498Z","thinkingLevel":"low"}
+{"type":"message","id":"db9a908f","parentId":"f5a7458d","timestamp":"2026-09-27T02:32:45.782Z","message":{"role":"user","content":[{"type":"text","text":"帮我看下obsibian"}],"timestamp":1790476365781}}

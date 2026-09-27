@@ -4,5 +4,12 @@
   "defaultProvider": "galbot",
   "defaultModel": "deepseek-v4-flash",
   "defaultThinkingLevel": "high",
-  "packages": []
+  "packages": [
+    "npm:pi-web-access",
+    "npm:pi-subagents",
+    "npm:pi-mcp-adapter",
+    "npm:@narumitw/pi-btw",
+    "npm:@narumitw/pi-plan-mode",
+    "npm:pi-wechat-assistant"
+  ]
 }
