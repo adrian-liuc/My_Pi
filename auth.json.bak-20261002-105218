@@ -1,0 +1,20 @@
+{
+  "openrouter": {
+    "type": "api_key",
+    "key": "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"
+  },
+  "galbot": {
+    "type": "api_key",
+    "key": "sk-rHFQK9bmRyGRTxeWw7RcGA"
+  },
+  "anthropic": {
+    "type": "oauth",
+    "refresh": "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",
+    "access": "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",
+    "expires": 1790937476527
+  },
+  "deepseek": {
+    "type": "api_key",
+    "key": "sk-31cc256f1e604654871fbad43663fcb0"
+  }
+}
