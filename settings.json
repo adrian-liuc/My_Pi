@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.99.1",
+  "lastChangelogVersion": "1.0.2",
   "theme": "dark",
   "defaultProvider": "galbot",
   "defaultModel": "deepseek-v4-flash",
@@ -11,5 +11,8 @@
     "npm:@narumitw/pi-btw",
     "npm:@narumitw/pi-plan-mode",
     "npm:pi-wechat-assistant"
+  ],
+  "extensions": [
+    "-builtin:mcp"
   ]
 }
