@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "galbot-doc-mcp": {
+      "url": "https://test-galbot-agent.galbot.work/mcp"
+    }
+  }
+}
