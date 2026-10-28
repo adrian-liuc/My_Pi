@@ -1,3 +1,11 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "shared-memory": {
+      "command": "python3",
+      "args": [
+        "-I",
+        "/home/galbot/ai-memory/mcp_server.py"
+      ]
+    }
+  }
 }
